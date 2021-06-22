@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">E-Note</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="notes_title">E-Note</string>
+    <string name="action_add">Новая запись</string>
+    <string name="action_done">Сделано</string>
+    <string name="i_m_info">Информация</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_update">Обновить</string>
+    <string name="action_clear">Очистить</string>
+    <string name="action_notes">Заметки</string>
+    <string name="action_info">Инфо</string>
+    <string name="update_fragment">Обновить</string>
+    <string name="title_hint">Новая запись</string>
+    <string name="e_notes_title">Записки енота</string>
+</resources>
