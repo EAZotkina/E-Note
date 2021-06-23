@@ -14,4 +14,5 @@
     <string name="update_fragment">Обновить</string>
     <string name="title_hint">Новая запись</string>
     <string name="e_notes_title">Записки енота</string>
+    <string name="note">Записка Енота</string>
 </resources>

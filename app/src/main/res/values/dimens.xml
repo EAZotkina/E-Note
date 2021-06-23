@@ -3,4 +3,5 @@
     <dimen name="default_margin">16dp</dimen>
     <dimen name="small_margin">12dp</dimen>
     <dimen name="img_height">250dp</dimen>
+    <dimen name="toolbarHeight">32dp</dimen>
 </resources>

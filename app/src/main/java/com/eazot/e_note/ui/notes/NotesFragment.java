@@ -139,7 +139,7 @@ public class NotesFragment extends Fragment {
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_add) {
 
-                    Note addedNote = repository.add("This is new added title", "https://cdn.pixabay.com/photo/2020/04/17/16/48/marguerite-5056063_1280.jpg");
+                    Note addedNote = repository.add("Новый день енота", "https://givotniymir.ru/wp-content/uploads/2016/05/enot-poloskun-obraz-zhizni-i-sreda-obitaniya-enota-poloskuna-3.jpg");
 
                     int index = notesAdapter.add(addedNote);
 
