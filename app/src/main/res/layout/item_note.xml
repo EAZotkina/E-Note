@@ -19,7 +19,7 @@
             android:layout_marginEnd="@dimen/default_margin"
             android:layout_marginBottom="@dimen/small_margin"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            tools:text="I'm a header here" />
+            tools:text="Заголовок" />
 
         <ImageView
             android:id="@+id/image"
