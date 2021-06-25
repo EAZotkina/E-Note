@@ -83,15 +83,8 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
 
     @Override
     public void onBindViewHolder(@NonNull NotesAdapter.NoteViewHolder holder, int position) {
-
         Note note = notes.get(position);
-
-        holder.title.setText(note.getTitle());
-
-        Glide.with(holder.image)
-                .load(note.getUrl())
-                .centerCrop()
-                .into(holder.image);
+        holder.bind(note);
     }
 
     @Override
@@ -109,39 +102,42 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
 
     class NoteViewHolder extends RecyclerView.ViewHolder {
 
-        TextView title;
-        ImageView image;
+        private final TextView title;
+        private final ImageView image;
 
         public NoteViewHolder(@NonNull View itemView) {
             super(itemView);
 
             fragment.registerForContextMenu(itemView);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (getListener() != null) {
-                        getListener().onNoteClickedListener(notes.get(getAdapterPosition()));
-                    }
+            itemView.setOnClickListener(v -> {
+                if (getListener() != null) {
+                    getListener().onNoteClickedListener(notes.get(getAdapterPosition()));
                 }
             });
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    itemView.showContextMenu();
+            itemView.setOnLongClickListener(v -> {
+                itemView.showContextMenu();
 
-                    if (getLongClickedListener() != null) {
-                        int index = getAdapterPosition();
-                        getLongClickedListener().onNoteLongClickedListener(notes.get(index), index);
-                    }
-
-                    return true;
+                if (getLongClickedListener() != null) {
+                    int index = getAdapterPosition();
+                    getLongClickedListener().onNoteLongClickedListener(notes.get(index), index);
                 }
+
+                return true;
             });
 
             title = itemView.findViewById(R.id.title);
             image = itemView.findViewById(R.id.image);
+        }
+
+        public void bind(Note note) {
+            title.setText(note.getTitle());
+
+            Glide.with(image)
+                    .load(note.getUrl())
+                    .centerCrop()
+                    .into(image);
         }
     }
 }

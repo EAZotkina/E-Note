@@ -58,6 +58,8 @@ public class UpdateNoteFragment extends Fragment {
         EditText title = view.findViewById(R.id.title);
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+
+
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_done) {

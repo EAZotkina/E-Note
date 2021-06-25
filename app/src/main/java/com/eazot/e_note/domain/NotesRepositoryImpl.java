@@ -19,9 +19,9 @@ public class NotesRepositoryImpl implements NotesRepository {
 
     private final ArrayList<Note> notes = new ArrayList<>();
 
-    private ExecutorService executor = Executors.newCachedThreadPool();
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     public NotesRepositoryImpl() {
 
@@ -37,23 +37,15 @@ public class NotesRepositoryImpl implements NotesRepository {
 
         @Override
         public void getNotes(Callback<List<Note>> callback) {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
+            executor.execute(() -> {
 
-                    try {
-                        Thread.sleep(2000L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onSuccess(notes);
-                        }
-                    });
+                try {
+                    Thread.sleep(2000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+
+                handler.post(() -> callback.onSuccess(notes));
             });
         }
 
