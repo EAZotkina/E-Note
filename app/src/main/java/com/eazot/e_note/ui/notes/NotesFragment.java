@@ -1,5 +1,4 @@
 package com.eazot.e_note.ui.notes;
-
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -13,25 +12,29 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentResultListener;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.eazot.e_note.domain.Callback;
 import com.eazot.e_note.R;
 import com.eazot.e_note.RouterHolder;
+import com.eazot.e_note.domain.Callback;
 import com.eazot.e_note.domain.Note;
+import com.eazot.e_note.domain.NotesFireStoreRepository;
 import com.eazot.e_note.domain.NotesRepository;
-import com.eazot.e_note.domain.NotesRepositoryImpl;
 import com.eazot.e_note.ui.MainRouter;
 import com.eazot.e_note.ui.update.UpdateNoteFragment;
 
 import java.util.Collections;
+import java.util.List;
 
 public class NotesFragment extends Fragment {
 
     public static final String TAG = "NotesFragment";
-    private final NotesRepository repository = NotesRepositoryImpl.INSTANCE;
+    private final NotesRepository repository = NotesFireStoreRepository.INSTANCE;
     private NotesAdapter notesAdapter;
 
     private int longClickedIndex;
@@ -53,38 +56,51 @@ public class NotesFragment extends Fragment {
 
         isLoading = true;
 
-        repository.getNotes(result -> {
-            notesAdapter.setData(result);
-            notesAdapter.notifyDataSetChanged();
+        repository.getNotes(new Callback<List<Note>>() {
+            @Override
+            public void onSuccess(List<Note> result) {
+                notesAdapter.setData(result);
+                notesAdapter.notifyDataSetChanged();
 
-            isLoading = false;
+                isLoading = false;
 
-            if (progressBar != null) {
-                progressBar.setVisibility(View.GONE);
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.GONE);
+                }
             }
         });
 
-        notesAdapter.setListener(note -> {
+        notesAdapter.setListener(new NotesAdapter.OnNoteClickedListener() {
+            @Override
+            public void onNoteClickedListener(@NonNull Note note) {
 
-            if (requireActivity() instanceof RouterHolder) {
-                MainRouter router = ((RouterHolder) requireActivity()).getMainRouter();
+                if (requireActivity() instanceof RouterHolder) {
+                    MainRouter router = ((RouterHolder) requireActivity()).getMainRouter();
 
-                router.showNoteDetail(note);
+                    router.showNoteDetail(note);
+                }
+//                Snackbar.make(view, note.getTitle(), Snackbar.LENGTH_SHORT).show();
             }
         });
 
-        notesAdapter.setLongClickedListener((note, index) -> {
-            longClickedIndex = index;
-            longClickedNote = note;
+        notesAdapter.setLongClickedListener(new NotesAdapter.OnNoteLongClickedListener() {
+            @Override
+            public void onNoteLongClickedListener(@NonNull Note note, int index) {
+                longClickedIndex = index;
+                longClickedNote = note;
+            }
         });
 
-        getParentFragmentManager().setFragmentResultListener(UpdateNoteFragment.UPDATE_RESULT, this, (requestKey, result) -> {
-            if (result.containsKey(UpdateNoteFragment.ARG_NOTE)) {
-                Note note = result.getParcelable(UpdateNoteFragment.ARG_NOTE);
+        getParentFragmentManager().setFragmentResultListener(UpdateNoteFragment.UPDATE_RESULT, this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+                if (result.containsKey(UpdateNoteFragment.ARG_NOTE)) {
+                    Note note = result.getParcelable(UpdateNoteFragment.ARG_NOTE);
 
-                notesAdapter.update(note);
+                    notesAdapter.update(note);
 
-                notesAdapter.notifyItemChanged(longClickedIndex);
+                    notesAdapter.notifyItemChanged(longClickedIndex);
+                }
             }
         });
 
@@ -116,32 +132,39 @@ public class NotesFragment extends Fragment {
             progressBar.setVisibility(View.VISIBLE);
         }
 
-        toolbar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_add) {
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_add) {
 
-                Note addedNote = repository.add("Новый день енота", "https://givotniymir.ru/wp-content/uploads/2016/05/enot-poloskun-obraz-zhizni-i-sreda-obitaniya-enota-poloskuna-3.jpg");
+                    repository.add("Еще один день енота", "https://enot-1.ru/wp-content/uploads/2015/03/1380784631_enot_13.jpg", new Callback<Note>() {
+                        @Override
+                        public void onSuccess(Note result) {
 
-                int index = notesAdapter.add(addedNote);
+                            int index = notesAdapter.add(result);
 
-                notesAdapter.notifyItemInserted(index);
+                            notesAdapter.notifyItemInserted(index);
 
-                notesList.scrollToPosition(index);
+                            notesList.scrollToPosition(index);
+                        }
+                    });
 
-                return true;
+                    return true;
+                }
+
+                if (item.getItemId() == R.id.action_clear) {
+
+                    repository.clear();
+
+                    notesAdapter.setData(Collections.emptyList());
+
+                    notesAdapter.notifyDataSetChanged();
+
+                    return true;
+                }
+
+                return false;
             }
-
-            if (item.getItemId() == R.id.action_clear) {
-
-                repository.clear();
-
-                notesAdapter.setData(Collections.emptyList());
-
-                notesAdapter.notifyDataSetChanged();
-
-                return true;
-            }
-
-            return false;
         });
 
 
@@ -154,8 +177,43 @@ public class NotesFragment extends Fragment {
 
         notesList.addItemDecoration(dividerItemDecoration);
 
+        // notesList.setLayoutManager(new GridLayoutManager(requireContext(), 2));
+
         notesList.setAdapter(notesAdapter);
+
+//        for (Note note : notes) {
+//
+//            View itemView = LayoutInflater.from(requireContext()).inflate(R.layout.item_note, containerView, false);
+//
+//            TextView title = itemView.findViewById(R.id.title);
+//            ImageView image = itemView.findViewById(R.id.image);
+//
+//            title.setText(note.getTitle());
+//
+//            Glide.with(this)
+//                    .load(note.getUrl())
+//                    .centerCrop()
+//                    .into(image);
+//
+//            containerView.addView(itemView);
+//        }
     }
+
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//
+//        new Handler().postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                notesAdapter.setData(new ArrayList<>());
+//                notesAdapter.notifyDataSetChanged();
+//
+//            }
+//        }, 2000L);
+//
+//    }
+
 
     @Override
     public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v, @Nullable ContextMenu.ContextMenuInfo menuInfo) {
@@ -179,11 +237,15 @@ public class NotesFragment extends Fragment {
 
         if (item.getItemId() == R.id.action_delete) {
 
-            repository.remove(longClickedNote);
+            repository.remove(longClickedNote, new Callback<Object>() {
+                @Override
+                public void onSuccess(Object result) {
+                    notesAdapter.remove(longClickedNote);
 
-            notesAdapter.remove(longClickedNote);
+                    notesAdapter.notifyItemRemoved(longClickedIndex);
+                }
+            });
 
-            notesAdapter.notifyItemRemoved(longClickedIndex);
 
             return true;
         }
